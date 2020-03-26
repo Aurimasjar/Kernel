@@ -48,6 +48,7 @@ class RealMachine
     int test();
     void checkInterrupts(VirtualMachine &vm);
     void interruptQuit(int status, VirtualMachine &vm);
+    void freeVirtualMemory(VirtualMachine &vm);
 
     void execute(VirtualMachine &vm);
 

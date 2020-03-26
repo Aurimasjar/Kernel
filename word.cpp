@@ -71,4 +71,36 @@ int Word::wordToIntDec(char w[4])
 void Word::print()
 {
     cout << (int)word[0] <<  (int)word[1] <<  (int)word[2] <<  (int)word[3];
+    /*for(int i = 0; i < 4; i++)
+    {
+        cout << charToHex(word[i] / 16) << charToHex(word[i] % 16);
+    }*/
+}
+
+char Word::intToHex(int x)
+{
+    if(x >= 0 && x <= 9)
+    {
+        return x + 48;
+    }
+    return x + 55;
+}
+
+char Word::charToHex(char s)
+{
+    if(s >= 0 && s <= 9)
+    {
+        return s + 48;
+    }
+    return s + 55;
+}
+
+
+int Word::hexToInt(char s)
+{
+    if(s >= 'A' && s <= 'F')
+    {
+        return s - 55;
+    }
+    return s - 48;
 }

@@ -95,8 +95,8 @@ void RealMachine::checkInterrupts(VirtualMachine &vm)
         }
         else if(si == 1) //GD
         {
-            int x1 = vm.getCommand(2) - '0';
-            int x2 = vm.getCommand(3) - '0';
+            int x1 = Word::hexToInt(vm.getCommand(2));
+            int x2 = Word::hexToInt(vm.getCommand(3));
             int x;
             vm.externalData >> x;
             if(vm.externalData) ch3 = 1;
@@ -106,8 +106,8 @@ void RealMachine::checkInterrupts(VirtualMachine &vm)
         }
         else if(si == 2) //PD
         {
-            int x1 = vm.getCommand(2) - '0';
-            int x2 = vm.getCommand(3) - '0';
+            int x1 = Word::hexToInt(vm.getCommand(2));
+            int x2 = Word::hexToInt(vm.getCommand(3));
             vm.printer << getRealData(16*x1 + x2);
             if(vm.printer) ch2 = 1;
             else ch2 = 0;
@@ -118,12 +118,12 @@ void RealMachine::checkInterrupts(VirtualMachine &vm)
         }
         else if(si == 4) //SLA
         {
-            int x = vm.getCommand(3) - '0';
+            int x = Word::hexToInt(vm.getCommand(3));
             vm.setBA(Word::wordToIntDec(data[sptr].getWord(x)));
         }
         else if(si == 5) //SUA
         {
-            int x = vm.getCommand(3) - '0';
+            int x = Word::hexToInt(vm.getCommand(3));
             data[sptr].setWord(Word::intToWordDec(vm.getBA()), x);
         }
 
@@ -142,8 +142,19 @@ void RealMachine::interruptQuit(int status, VirtualMachine &vm)
     printData();
     printVirtualData();
     printPageTable();
-    //free memory?
+    freeVirtualMemory(vm);
     exit(status);
+}
+
+void RealMachine::freeVirtualMemory(VirtualMachine &vm)
+{
+    int a2 = ptr.getByte(2);
+    int a3 = ptr.getByte(3);
+    for(int i = 0; i < 16; i++)
+    {
+        data[Word::wordToIntDec(data[10 * a2 + a3].getWord(i))].setReserved(false);
+    }
+    data[10 * a2 + a3].setReserved(false);
 }
 
 void RealMachine::execute(VirtualMachine &vm)
@@ -166,43 +177,43 @@ void RealMachine::execute(VirtualMachine &vm)
     }
     else if(vm.getCommand(0) == 'L' && vm.getCommand(1) == 'A')
     {
-        la(vm, vm.getCommand(2) - '0', vm.getCommand(3) - '0');
+        la(vm, Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand(0) == 'L' && vm.getCommand(1) == 'B')
     {
-        lb(vm, vm.getCommand(2) - '0', vm.getCommand(3) - '0');
+        lb(vm, Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand(0) == 'U' && vm.getCommand(1) == 'A')
     {
-        ua(vm, vm.getCommand(2) - '0', vm.getCommand(3) - '0');
+        ua(vm, Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand(0) == 'U' && vm.getCommand(1) == 'B')
     {
-        ub(vm, vm.getCommand(2) - '0', vm.getCommand(3) - '0');
+        ub(vm, Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand(0) == 'G' && vm.getCommand(1) == 'D')
     {
-        gd(vm, vm.getCommand(2) - '0', vm.getCommand(3) - '0');
+        gd(vm, Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand(0) == 'P' && vm.getCommand(1) == 'D')
     {
-        pd(vm, vm.getCommand(2) - '0', vm.getCommand(3) - '0');
+        pd(vm, Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand(0) == 'L' && vm.getCommand(1) == 'O' && vm.getCommand(0) == 'C')
     {
-        loc(vm, vm.getCommand(3) - '0');
+        loc(vm, Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand(0) == 'U' && vm.getCommand(1) == 'N' && vm.getCommand(0) == 'L')
     {
-        unl(vm, vm.getCommand(3) - '0');
+        unl(vm, Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand(0) == 'S' && vm.getCommand(1) == 'L' && vm.getCommand(0) == 'A')
     {
-        sla(vm, vm.getCommand(3) - '0');
+        sla(vm, Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand(0) == 'S' && vm.getCommand(1) == 'U' && vm.getCommand(0) == 'A')
     {
-        sua(vm, vm.getCommand(3) - '0');
+        sua(vm, Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand() == "CMP ")
     {
@@ -210,7 +221,7 @@ void RealMachine::execute(VirtualMachine &vm)
     }
     else if(vm.getCommand(0) == 'J' && vm.getCommand(1) == 'M')
     {
-        jm(vm, vm.getCommand(2) - '0', vm.getCommand(3) - '0');
+        jm(vm, Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand() == "HALT")
     {
@@ -409,7 +420,7 @@ void RealMachine::la(VirtualMachine &vm, int x1, int x2)
     ic++;
     vm.setIC(vm.getIC() + 1);
     ti--;
-    if(x1 >= 0 && x1 <= 9 && x2 >= 0 && x2 <= 9)
+    if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
     {
         vm.setBA(getRealData(16*x1 + x2));
     }
@@ -426,7 +437,7 @@ void RealMachine::lb(VirtualMachine &vm, int x1, int x2)
     ic++;
     vm.setIC(vm.getIC() + 1);
     ti--;
-    if(x1 >= 0 && x1 <= 9 && x2 >= 0 && x2 <= 9)
+    if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
     {
         vm.setBB(getRealData(16*x1 + x2));
     }
@@ -442,7 +453,7 @@ void RealMachine::ua(VirtualMachine &vm, int x1, int x2)
     ic++;
     vm.setIC(vm.getIC() + 1);
     ti--;
-    if(x1 >= 0 && x1 <= 9 && x2 >= 0 && x2 <= 9)
+    if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
     {
         setRealData(vm.getBA(), 16*x1 + x2);
     }
@@ -458,7 +469,7 @@ void RealMachine::ub(VirtualMachine &vm, int x1, int x2)
     ic++;
     vm.setIC(vm.getIC() + 1);
     ti--;
-    if(x1 >= 0 && x1 <= 9 && x2 >= 0 && x2 <= 9)
+    if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
     {
         setRealData(vm.getBB(), 16*x1 + x2);
     }
@@ -474,7 +485,7 @@ void RealMachine::gd(VirtualMachine &vm, int x1, int x2)
     ic++;
     vm.setIC(vm.getIC() + 1);
     ti -= 3;
-    if(x1 >= 0 && x1 <= 9 && x2 >= 0 && x2 <= 9)
+    if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
     {
         //mode = 1;
         si = 1;
@@ -497,7 +508,7 @@ void RealMachine::pd(VirtualMachine &vm, int x1, int x2)
     ic++;
     vm.setIC(vm.getIC() + 1);
     ti -= 3;
-    if(x1 >= 0 && x1 <= 9 && x2 >= 0 && x2 <= 9)
+    if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
     {
         //mode = 1;
         si = 2;
@@ -518,7 +529,7 @@ void RealMachine::loc(VirtualMachine &vm, int x)
     ic++;
     vm.setIC(vm.getIC() + 1);
     ti--;
-    if(x >= 0 && x <= 9)
+    if(x >= 0 && x <= 15)
     {
         //word [16*sptr + x] locked
         s = x; //ar s=16*sptr+x?
@@ -535,7 +546,7 @@ void RealMachine::unl(VirtualMachine &vm, int x)
     ic++;
     vm.setIC(vm.getIC() + 1);
     ti--;
-    if(x >= 0 && x <= 9)
+    if(x >= 0 && x <= 15)
     {
         //word [16*sptr + x] unlocked
         s = x; //ar s=16*sptr+x?
@@ -551,7 +562,7 @@ void RealMachine::sla(VirtualMachine &vm, int x)
     ic++;
     vm.setIC(vm.getIC() + 1);
     ti--;
-    if(x >= 0 && x <= 9)
+    if(x >= 0 && x <= 15)
     {
         //mode = 1;
         si = 4;
@@ -569,7 +580,7 @@ void RealMachine::sua(VirtualMachine &vm, int x)
     ic++;
     vm.setIC(vm.getIC() + 1);
     ti--;
-    if(x >= 0 && x <= 9)
+    if(x >= 0 && x <= 15)
     {
         //mode = 1;
         si = 5;
@@ -597,7 +608,7 @@ void RealMachine::jm(VirtualMachine &vm, int x1, int x2)
     ic++;
     vm.setIC(vm.getIC() + 1);
     ti--;
-    if(x1 >= 0 && x1 <= 9 && x2 >= 0 && x2 <= 9)
+    if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
     {
         //perduoti valdyma komandai adresu 16*x1 + x2
     }

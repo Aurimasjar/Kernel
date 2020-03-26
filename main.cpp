@@ -9,7 +9,6 @@ int main(int argc, char *argv[])
     RealMachine rm;
     if(argc > 0 && atoi(argv[1]) == 1)
     {
-        cout << "YRA" << endl;
         rm.runProgram("program.txt", true);
     }
     else
