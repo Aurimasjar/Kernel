@@ -1,10 +1,21 @@
 #include <iostream>
-
-#include "interpreter.h"
+#include <cstdlib>
+#include "realMachine.h"
 
 using namespace std;
 
-int main()
+int main(int argc, char *argv[])
 {
-    Interpreter i("program.txt");
+    RealMachine rm;
+    if(argc > 0 && atoi(argv[1]) == 1)
+    {
+        cout << "YRA" << endl;
+        rm.runProgram("program.txt", true);
+    }
+    else
+    {
+        rm.runProgram("program.txt");
+    }
+    
+    rm.printData();
 }

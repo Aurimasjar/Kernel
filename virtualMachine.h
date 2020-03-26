@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+//#include "realMachine.h"
 
 using namespace std;
 
@@ -10,28 +11,33 @@ class VirtualMachine
 {
     private:
 
-    int ic;
+    int ic = 0;
     int ba;
     int bb;
-    int data[256];
-    ifstream flash;
-    int readData;
-    ofstream printer;
+    //char data[256];
+    ifstream program;
+
+    string command;
 
     public:
 
-    VirtualMachine()
+    ifstream externalData;
+    ofstream printer;
+
+    VirtualMachine(string filename)
     {
         ic = 0;
         ba = 0;
         bb = 0;
-        flash.open("flash.txt");
+        program.open(filename);
+        externalData.open("data.txt");
         printer.open("printer.txt");
     }
 
     ~VirtualMachine()
     {
-        flash.close();
+        program.close();
+        externalData.close();
         printer.close();
     }
 
@@ -44,33 +50,10 @@ class VirtualMachine
     void setBB(int bb) { this->bb = bb; }
     int getBB() { return bb; }
 
-    void printData();
+    string getCommand();
+    char getCommand(int pos);
 
-    //arithmetic operations
-    void add();
-    void sub();
-    void mul();
-    void div();
-
-    //operations for working with data
-    void la(int x1, int x2);
-    void lb(int x1, int x2);
-    void ua(int x1, int x2);
-    void ub(int x1, int x2);
-    void gd(int x1, int x2);
-    void pd(int x1, int x2);
-    void loc(int x);
-    void uni(int x);
-    void sla(int x);
-    void sua(int x);
-
-    //comparison operations
-    void cmp();
-
-    //control operations
-    void jm(int x1, int x2);
-    void halt();
-
+    string readCommand(int &ch);
 };
 
 #endif

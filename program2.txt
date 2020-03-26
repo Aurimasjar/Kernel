@@ -1,0 +1,4 @@
+$STR
+GD10
+HALT
+$END
