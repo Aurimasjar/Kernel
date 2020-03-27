@@ -2,7 +2,18 @@
 
 RealMachine::RealMachine()
 {
+    //printer.open("printer.txt");
+    /*for(int i = 72; i < 80; i++)
+    {
+        data[i].setReserved(true);
+    }*/
+    sptr = 79;
+    data[sptr].setReserved(true);
+}
 
+RealMachine::~RealMachine()
+{
+    //printer.close();
 }
 
 void RealMachine::runProgram(string filename, bool trace)
@@ -18,9 +29,7 @@ void RealMachine::runProgram(string filename, bool trace)
     while(true)
     {
         vm.readCommand(ch1);
-
         checkTrace(vm, trace);
-
         execute(vm);        
         cout << vm.getCommand() << endl;
         checkInterrupts(vm);
@@ -58,7 +67,7 @@ void RealMachine::checkTrace(VirtualMachine &vm, bool trace)
                 }
                 else if(waitCommand == "vmreg")
                 {
-                    printVirtualRegisters(vm);
+                    printVirtualRegisters();
                 }
                 else
                 {
@@ -87,11 +96,11 @@ void RealMachine::checkInterrupts(VirtualMachine &vm)
 
         if(pi > 0)
         {
-            interruptQuit(1, vm);
+            interruptQuit(1);
         }
         else if(ti <= 0)
         {
-            interruptQuit(1, vm);
+            interruptQuit(1);
         }
         else if(si == 1) //GD
         {
@@ -108,23 +117,44 @@ void RealMachine::checkInterrupts(VirtualMachine &vm)
         {
             int x1 = Word::hexToInt(vm.getCommand(2));
             int x2 = Word::hexToInt(vm.getCommand(3));
-            vm.printer << getRealData(16*x1 + x2);
-            if(vm.printer) ch2 = 1;
+            printer.open("printer.txt"); //open with append?
+            printer << getRealData(16*x1 + x2);
+            printer.close();
+            if(printer) ch2 = 1;
             else ch2 = 0;
         }
         else if(si == 3) //HALT
         {
-            interruptQuit(0, vm);
+            interruptQuit(0);
         }
         else if(si == 4) //SLA
         {
             int x = Word::hexToInt(vm.getCommand(3));
-            vm.setBA(Word::wordToIntDec(data[sptr].getWord(x)));
+            if((s & (1 << x)) != 0)
+            {
+                ba = Word::wordToIntDec(data[sptr].getWord(x));
+            }
+            else 
+            {
+                pi = 5;
+            }
         }
         else if(si == 5) //SUA
         {
             int x = Word::hexToInt(vm.getCommand(3));
-            data[sptr].setWord(Word::intToWordDec(vm.getBA()), x);
+            if((s & (1 << x)) != 0)
+            {
+                data[sptr].setWord(Word::intToWordDec(ba), x);
+            }
+            else
+            {
+                pi = 5;
+            }
+        }
+
+        if(pi > 0)
+        {
+            interruptQuit(0);
         }
 
         si = 0;
@@ -134,19 +164,20 @@ void RealMachine::checkInterrupts(VirtualMachine &vm)
     }
 }
 
-void RealMachine::interruptQuit(int status, VirtualMachine &vm)
+void RealMachine::interruptQuit(int status)
 {
     cout << endl;
     printRegisters();
-    printVirtualRegisters(vm);
+    printVirtualRegisters();
     printData();
     printVirtualData();
     printPageTable();
-    freeVirtualMemory(vm);
+    freeVirtualMemory();
+    cout << "Exit status " << status << endl;
     exit(status);
 }
 
-void RealMachine::freeVirtualMemory(VirtualMachine &vm)
+void RealMachine::freeVirtualMemory()
 {
     int a2 = ptr.getByte(2);
     int a3 = ptr.getByte(3);
@@ -161,71 +192,71 @@ void RealMachine::execute(VirtualMachine &vm)
 {
     if(vm.getCommand() == "ADD0")
     {
-       add(vm);
+       add();
     }
     else if(vm.getCommand() == "SUB0")
     {
-       sub(vm);
+       sub();
     }
     else if(vm.getCommand() == "MUL0")
     {
-       mul(vm);
+       mul();
     }
     else if(vm.getCommand() == "DIV0")
     {
-       div(vm);
+       div();
     }
     else if(vm.getCommand(0) == 'L' && vm.getCommand(1) == 'A')
     {
-        la(vm, Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
+        la(Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand(0) == 'L' && vm.getCommand(1) == 'B')
     {
-        lb(vm, Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
+        lb(Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand(0) == 'U' && vm.getCommand(1) == 'A')
     {
-        ua(vm, Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
+        ua(Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand(0) == 'U' && vm.getCommand(1) == 'B')
     {
-        ub(vm, Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
+        ub(Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand(0) == 'G' && vm.getCommand(1) == 'D')
     {
-        gd(vm, Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
+        gd(Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand(0) == 'P' && vm.getCommand(1) == 'D')
     {
-        pd(vm, Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
+        pd(Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
     }
-    else if(vm.getCommand(0) == 'L' && vm.getCommand(1) == 'O' && vm.getCommand(0) == 'C')
+    else if(vm.getCommand(0) == 'L' && vm.getCommand(1) == 'O' && vm.getCommand(2) == 'C')
     {
-        loc(vm, Word::hexToInt(vm.getCommand(3)));
+        loc(Word::hexToInt(vm.getCommand(3)));
     }
-    else if(vm.getCommand(0) == 'U' && vm.getCommand(1) == 'N' && vm.getCommand(0) == 'L')
+    else if(vm.getCommand(0) == 'U' && vm.getCommand(1) == 'N' && vm.getCommand(2) == 'L')
     {
-        unl(vm, Word::hexToInt(vm.getCommand(3)));
+        unl(Word::hexToInt(vm.getCommand(3)));
     }
-    else if(vm.getCommand(0) == 'S' && vm.getCommand(1) == 'L' && vm.getCommand(0) == 'A')
+    else if(vm.getCommand(0) == 'S' && vm.getCommand(1) == 'L' && vm.getCommand(2) == 'A')
     {
-        sla(vm, Word::hexToInt(vm.getCommand(3)));
+        sla(Word::hexToInt(vm.getCommand(3)));
     }
-    else if(vm.getCommand(0) == 'S' && vm.getCommand(1) == 'U' && vm.getCommand(0) == 'A')
+    else if(vm.getCommand(0) == 'S' && vm.getCommand(1) == 'U' && vm.getCommand(2) == 'A')
     {
-        sua(vm, Word::hexToInt(vm.getCommand(3)));
+        sua(Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand() == "CMP ")
     {
-        cmp(vm);
+        cmp();
     }
     else if(vm.getCommand(0) == 'J' && vm.getCommand(1) == 'M')
     {
-        jm(vm, Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
+        jm( Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
     }
     else if(vm.getCommand() == "HALT")
     {
-        halt(vm);
+        halt();
     }
     else
     {
@@ -241,8 +272,7 @@ int RealMachine::getRealData(int virtualAddress) // apsaugoti semaforu?
     int x1 = virtualAddress / 16;
     int x2 = virtualAddress % 16;
     //return 16 * wordToInt(rm->data[16 * (10 * a2 + a3) + x1] + x2);
-    sptr = Word::wordToIntDec(data[10 * a2 + a3].getWord(x1));
-    return Word::wordToInt(data[sptr].getWord(x2));
+    return Word::wordToInt(data[Word::wordToIntDec(data[10 * a2 + a3].getWord(x1))].getWord(x2));
 }
 
 void RealMachine::setRealData(int x, int virtualAddress) // apsaugoti semaforu?
@@ -252,8 +282,7 @@ void RealMachine::setRealData(int x, int virtualAddress) // apsaugoti semaforu?
     int x1 = virtualAddress / 16;
     int x2 = virtualAddress % 16;
     //return 16 * wordToInt(rm->data[16 * (10 * a2 + a3) + x1] + x2);
-    sptr = Word::wordToIntDec(data[10 * a2 + a3].getWord(x1));
-    data[sptr].setWord(Word::intToWord(x), x2);
+    data[Word::wordToIntDec(data[10 * a2 + a3].getWord(x1))].setWord(Word::intToWord(x), x2);
 }
 
 void RealMachine::initializePtr()
@@ -271,9 +300,7 @@ void RealMachine::initializePtr()
     ptr.setByte((char) a2, 2);
     ptr.setByte((char) a3, 3);
 
-    sptr = pageTableBlockIndex;
-    data[sptr].setReserved(true); // pakeisti S reiksme
-    s = pageTableBlockIndex;
+    data[pageTableBlockIndex].setReserved(true);
 }
 
 void RealMachine::initializePageTable()
@@ -293,17 +320,16 @@ void RealMachine::initializePageTable()
             }
         }
         data[randomBlockIndex].setReserved(true);
-        sptr = 10 * ptr.getByte(2) + ptr.getByte(3);
-        data[sptr].setWord(Word::intToWordDec(randomBlockIndex), i);
+        data[10 * ptr.getByte(2) + ptr.getByte(3)].setWord(Word::intToWordDec(randomBlockIndex), i);
     }
 }
 
-void RealMachine::printVirtualRegisters(VirtualMachine &vm)
+void RealMachine::printVirtualRegisters()
 {
     cout << "Virtual machine registers:" << endl;
-    cout << "Ic = " << vm.getIC() << endl;
-    cout << "Ba = " << vm.getBA() << endl;
-    cout << "Bb = " << vm.getBB() << endl;
+    cout << "Ic = " << ic << endl;
+    cout << "Ba = " << ba << endl;
+    cout << "Bb = " << bb << endl;
     cout << endl;
 }
 
@@ -314,8 +340,8 @@ void RealMachine::printRegisters()
     cout << "Ptr = " << ptr.getWord() << endl;
     cout << "Sptr = " << sptr << endl;
     cout << "Ba = " << ba << endl;
-    cout << "Bb = " << ba << endl;
-    cout << "Bc = " << ba << endl;
+    cout << "Bb = " << bb << endl;
+    cout << "Bc = " << bc << endl;
     cout << "Sf = " << sf << endl;
     cout << "S = " << s << endl;
     cout << "Mode = " << mode << endl;
@@ -381,48 +407,43 @@ void RealMachine::printReservedBlocks()
     cout << endl;
 }
 
-void RealMachine::add(VirtualMachine &vm)
+void RealMachine::add()
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
-    vm.setBA(vm.getBA() + vm.getBB());
+    ba += bb;
 }
 
-void RealMachine::sub(VirtualMachine &vm)
+void RealMachine::sub()
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
     ti--;
-    vm.setBA(vm.getBA() - vm.getBB());
+    ba -= bb;
 }
 
-void RealMachine::mul(VirtualMachine &vm)
+void RealMachine::mul()
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
     ti--;
-    vm.setBA(vm.getBA() * vm.getBB());
+    ba *= bb;
 }
 
-void RealMachine::div(VirtualMachine &vm)
+void RealMachine::div()
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
     ti--;
-    int r = vm.getBA() % vm.getBB();
-    vm.setBA(vm.getBA() / vm.getBB());
-    vm.setBB(r);
+    int r = ba % bb;
+    ba /= bb;
+    bb = r;
 }
 
 
-void RealMachine::la(VirtualMachine &vm, int x1, int x2)
+void RealMachine::la(int x1, int x2)
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
     ti--;
     if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
     {
-        vm.setBA(getRealData(16*x1 + x2));
+       ba = getRealData(16*x1 + x2);
     }
     else
     {
@@ -432,14 +453,13 @@ void RealMachine::la(VirtualMachine &vm, int x1, int x2)
     //vm.ba = wordToInt(data[16*x1 + x2]);
 }
 
-void RealMachine::lb(VirtualMachine &vm, int x1, int x2)
+void RealMachine::lb(int x1, int x2)
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
     ti--;
     if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
     {
-        vm.setBB(getRealData(16*x1 + x2));
+        bb = getRealData(16*x1 + x2);
     }
     else
     {
@@ -448,14 +468,13 @@ void RealMachine::lb(VirtualMachine &vm, int x1, int x2)
     //vm.bb = data[16*x1 + x2];
 }
 
-void RealMachine::ua(VirtualMachine &vm, int x1, int x2)
+void RealMachine::ua(int x1, int x2)
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
     ti--;
     if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
     {
-        setRealData(vm.getBA(), 16*x1 + x2);
+        setRealData(ba, 16*x1 + x2);
     }
     else
     {
@@ -464,14 +483,13 @@ void RealMachine::ua(VirtualMachine &vm, int x1, int x2)
     //data[16*x1 + x2] = vm.ba;
 }
 
-void RealMachine::ub(VirtualMachine &vm, int x1, int x2)
+void RealMachine::ub(int x1, int x2)
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
     ti--;
     if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
     {
-        setRealData(vm.getBB(), 16*x1 + x2);
+        setRealData(bb, 16*x1 + x2);
     }
     else
     {
@@ -480,10 +498,9 @@ void RealMachine::ub(VirtualMachine &vm, int x1, int x2)
     //data[16*x1 + x2] = vm.bb;
 }
 
-void RealMachine::gd(VirtualMachine &vm, int x1, int x2)
+void RealMachine::gd(int x1, int x2)
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
     ti -= 3;
     if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
     {
@@ -503,10 +520,9 @@ void RealMachine::gd(VirtualMachine &vm, int x1, int x2)
     }
 }
 
-void RealMachine::pd(VirtualMachine &vm, int x1, int x2)
+void RealMachine::pd(int x1, int x2)
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
     ti -= 3;
     if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
     {
@@ -524,15 +540,21 @@ void RealMachine::pd(VirtualMachine &vm, int x1, int x2)
     }
 }
 
-void RealMachine::loc(VirtualMachine &vm, int x)
+void RealMachine::loc(int x)
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
     ti--;
     if(x >= 0 && x <= 15)
     {
-        //word [16*sptr + x] locked
-        s = x; //ar s=16*sptr+x?
+        if((s & (1 << x)) == 0)
+        {
+            s += pow(2, x);
+        }
+        else
+        {
+            pi = 5;
+        }
+        
     }
     else
     {
@@ -541,15 +563,20 @@ void RealMachine::loc(VirtualMachine &vm, int x)
     
 }
 
-void RealMachine::unl(VirtualMachine &vm, int x)
+void RealMachine::unl(int x)
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
     ti--;
     if(x >= 0 && x <= 15)
     {
-        //word [16*sptr + x] unlocked
-        s = x; //ar s=16*sptr+x?
+        if((s & (1 << x)) != 0)
+        {
+            s -= pow(2, x);
+        }
+        else
+        {
+            pi = 5;
+        }
     }
     else
     {
@@ -557,10 +584,9 @@ void RealMachine::unl(VirtualMachine &vm, int x)
     }
 }
 
-void RealMachine::sla(VirtualMachine &vm, int x)
+void RealMachine::sla(int x)
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
     ti--;
     if(x >= 0 && x <= 15)
     {
@@ -575,10 +601,9 @@ void RealMachine::sla(VirtualMachine &vm, int x)
     }
 }
 
-void RealMachine::sua(VirtualMachine &vm, int x)
+void RealMachine::sua(int x)
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
     ti--;
     if(x >= 0 && x <= 15)
     {
@@ -593,20 +618,18 @@ void RealMachine::sua(VirtualMachine &vm, int x)
     }
 }
 
-void RealMachine::cmp(VirtualMachine &vm)
+void RealMachine::cmp()
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
     ti--;
-    if(vm.getBA() == vm.getBB()) sf = 0;
-    else if(vm.getBA() > vm.getBB()) sf = 1;
+    if(ba == bb) sf = 0;
+    else if(ba > bb) sf = 1;
     else sf = 2;
 }
 
-void RealMachine::jm(VirtualMachine &vm, int x1, int x2)
+void RealMachine::jm(int x1, int x2)
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
     ti--;
     if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
     {
@@ -618,10 +641,9 @@ void RealMachine::jm(VirtualMachine &vm, int x1, int x2)
     }
 }
 
-void RealMachine::halt(VirtualMachine &vm)
+void RealMachine::halt()
 {
     ic++;
-    vm.setIC(vm.getIC() + 1);
     ti--;
     //mode = 1;
     si = 3;

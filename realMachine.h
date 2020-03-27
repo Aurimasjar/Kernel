@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <ctime>
+#include <cmath>
 #include "virtualMachine.h"
 #include "word.h"
 #include "block.h"
@@ -26,7 +27,7 @@ class RealMachine
     int bb;
     int bc;
     int sf;
-    int s;
+    int s = 0;
     int mode;
     int ti = 30;
     int pi = 0;
@@ -39,7 +40,10 @@ class RealMachine
     
     //Semaphore sem;
 
+    ofstream printer;
+
     RealMachine();
+    ~RealMachine();
 
     void runProgram(string filename, bool trace = false);
 
@@ -47,13 +51,13 @@ class RealMachine
 
     int test();
     void checkInterrupts(VirtualMachine &vm);
-    void interruptQuit(int status, VirtualMachine &vm);
-    void freeVirtualMemory(VirtualMachine &vm);
+    void interruptQuit(int status);
+    void freeVirtualMemory();
 
     void execute(VirtualMachine &vm);
 
     void printRegisters();
-    void printVirtualRegisters(VirtualMachine &vm);
+    void printVirtualRegisters();
     void printData();
     void printVirtualData();
     void printPageTable();
@@ -67,29 +71,29 @@ class RealMachine
     void initializePageTable();
 
     //arithmetic operations
-    void add(VirtualMachine &vm);
-    void sub(VirtualMachine &vm);
-    void mul(VirtualMachine &vm);
-    void div(VirtualMachine &vm);
+    void add();
+    void sub();
+    void mul();
+    void div();
 
     //operations for working with data
-    void la(VirtualMachine &vm, int x1, int x2);
-    void lb(VirtualMachine &vm, int x1, int x2);
-    void ua(VirtualMachine &vm, int x1, int x2);
-    void ub(VirtualMachine &vm, int x1, int x2);
-    void gd(VirtualMachine &vm, int x1, int x2);
-    void pd(VirtualMachine &vm, int x1, int x2);
-    void loc(VirtualMachine &vm, int x);
-    void unl(VirtualMachine &vm, int x);
-    void sla(VirtualMachine &vm, int x);
-    void sua(VirtualMachine &vm, int x);
+    void la(int x1, int x2);
+    void lb(int x1, int x2);
+    void ua(int x1, int x2);
+    void ub(int x1, int x2);
+    void gd(int x1, int x2);
+    void pd(int x1, int x2);
+    void loc(int x);
+    void unl(int x);
+    void sla(int x);
+    void sua(int x);
 
     //comparison operations
-    void cmp(VirtualMachine &vm);
+    void cmp();
 
     //control operations
-    void jm(VirtualMachine &vm, int x1, int x2);
-    void halt(VirtualMachine &vm);
+    void jm(int x1, int x2);
+    void halt();
 };
 
 #endif

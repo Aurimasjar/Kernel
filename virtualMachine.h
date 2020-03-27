@@ -11,9 +11,9 @@ class VirtualMachine
 {
     private:
 
-    int ic = 0;
-    int ba;
-    int bb;
+    //int ic = 0;
+    //int ba;
+    //int bb;
     //char data[256];
     ifstream program;
 
@@ -22,33 +22,32 @@ class VirtualMachine
     public:
 
     ifstream externalData;
-    ofstream printer;
 
     VirtualMachine(string filename)
     {
-        ic = 0;
+        /*ic = 0;
         ba = 0;
-        bb = 0;
+        bb = 0;*/
         program.open(filename);
         externalData.open("data.txt");
-        printer.open("printer.txt");
+        //printer << "Atidarem" << endl;
     }
 
     ~VirtualMachine()
     {
+        //printer << "Uzdarem" << endl;
         program.close();
         externalData.close();
-        printer.close();
     }
 
-    void setIC(int ic) { this->ic = ic; }
+    /*void setIC(int ic) { this->ic = ic; }
     int getIC() { return ic; }
 
     void setBA(int ba) { this->ba = ba; }
     int getBA() { return ba; }
 
     void setBB(int bb) { this->bb = bb; }
-    int getBB() { return bb; }
+    int getBB() { return bb; }*/
 
     string getCommand();
     char getCommand(int pos);
