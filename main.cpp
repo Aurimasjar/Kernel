@@ -16,5 +16,5 @@ int main(int argc, char *argv[])
         rm.runProgram("program2.txt");
     }
     
-    rm.printData();
+    //rm.printData();
 }

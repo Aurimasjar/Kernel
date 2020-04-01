@@ -38,7 +38,8 @@ class Word
     static int hexToInt(char s);
     static char charToHex(char s);
     static char intToHex(int x);
-
+    static Word stringToWord(string str);
+    static string wordToString(Word w);
 };
 
 #endif

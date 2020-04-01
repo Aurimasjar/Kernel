@@ -50,7 +50,7 @@ class VirtualMachine
     int getBB() { return bb; }*/
 
     string getCommand();
-    char getCommand(int pos);
+    //char getCommand(int pos);
 
     string readCommand(int &ch);
 };

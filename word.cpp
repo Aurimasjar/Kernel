@@ -70,11 +70,11 @@ int Word::wordToIntDec(char w[4])
 
 void Word::print()
 {
-    cout << (int)word[0] <<  (int)word[1] <<  (int)word[2] <<  (int)word[3];
-    /*for(int i = 0; i < 4; i++)
+    //cout << (int)word[0] <<  (int)word[1] <<  (int)word[2] <<  (int)word[3];
+    for(int i = 0; i < 4; i++)
     {
         cout << charToHex(word[i] / 16) << charToHex(word[i] % 16);
-    }*/
+    }
 }
 
 char Word::intToHex(int x)
@@ -103,4 +103,36 @@ int Word::hexToInt(char s)
         return s - 55;
     }
     return s - 48;
+}
+
+Word Word::stringToWord(string str)
+{
+    Word w;
+    if(str.length() < 4)
+    {
+        for(int i = 0; i < str.length(); i++)
+        {
+            w.word[i] = str[i];
+        }
+        for(int i = str.length(); i < 4; i++)
+        {
+            w.word[i] = '$';
+        }
+        return w;
+    }  
+    for(int i = 0; i < 4; i++)
+    {
+        w.word[i] = str[i];
+    }
+    return w;
+}
+
+string Word::wordToString(Word w)
+{
+    string str = "";
+    for(int i = 0; i < 4; i++)
+    {
+        str += w.word[i];
+    }
+    return str;
 }

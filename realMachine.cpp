@@ -21,22 +21,32 @@ void RealMachine::runProgram(string filename, bool trace)
     VirtualMachine vm(filename);
     initializePtr();
     initializePageTable();
+    prepareCommands(vm);
 
     //printPageTable();
     //printReservedBlocks();
 
-    vm.readCommand(ch1);
+    string command = getCommand();
     while(true)
     {
-        vm.readCommand(ch1);
-        checkTrace(vm, trace);
-        execute(vm);        
-        cout << vm.getCommand() << endl;
-        checkInterrupts(vm);
+        command = getCommand();
+        checkTrace(trace);
+        execute(command);        
+        cout << command << endl;
+        checkInterrupts(vm, command, trace);
     }
 }
 
-void RealMachine::checkTrace(VirtualMachine &vm, bool trace)
+string RealMachine::getCommand()
+{
+    int a2 = ptr.getByte(2);
+    int a3 = ptr.getByte(3);
+    int x1 = ic / 16;
+    int x2 = ic % 16;
+    return Word::wordToString(data[Word::wordToIntDec(data[10 * a2 + a3].getWord(x1))].getWord(x2));
+}
+
+void RealMachine::checkTrace(bool trace)
 {
     string waitCommand;
     if(trace == true)
@@ -47,7 +57,7 @@ void RealMachine::checkTrace(VirtualMachine &vm, bool trace)
                 cin >> waitCommand;
                 if(waitCommand == "nextcom")
                 {
-                    cout << "Next command is " << vm.getCommand() << endl;
+                    cout << "Next command is " << getCommand() << endl;
                 }
                 else if(waitCommand == "rmdata")
                 {
@@ -88,7 +98,7 @@ int RealMachine::test()
     return 0;
 }
 
-void RealMachine::checkInterrupts(VirtualMachine &vm)
+void RealMachine::checkInterrupts(VirtualMachine &vm, string command, bool trace)
 {
     if(test())
     {
@@ -104,24 +114,25 @@ void RealMachine::checkInterrupts(VirtualMachine &vm)
         }
         else if(si == 1) //GD
         {
-            int x1 = Word::hexToInt(vm.getCommand(2));
-            int x2 = Word::hexToInt(vm.getCommand(3));
+            int x1 = Word::hexToInt(command[2]);
+            int x2 = Word::hexToInt(command[3]);
             int x;
             vm.externalData >> x;
             if(vm.externalData) ch3 = 1;
             else ch3 = 0;
             setRealData(x, 16*x1 + x2);
-            //flash >> data[16*x1 + x2];
+            checkTrace(trace);
         }
         else if(si == 2) //PD
         {
-            int x1 = Word::hexToInt(vm.getCommand(2));
-            int x2 = Word::hexToInt(vm.getCommand(3));
+            int x1 = Word::hexToInt(command[2]);
+            int x2 = Word::hexToInt(command[3]);
             printer.open("printer.txt"); //open with append?
             printer << getRealData(16*x1 + x2);
             printer.close();
             if(printer) ch2 = 1;
             else ch2 = 0;
+            checkTrace(trace);
         }
         else if(si == 3) //HALT
         {
@@ -129,10 +140,11 @@ void RealMachine::checkInterrupts(VirtualMachine &vm)
         }
         else if(si == 4) //SLA
         {
-            int x = Word::hexToInt(vm.getCommand(3));
+            int x = Word::hexToInt(command[3]);
             if((s & (1 << x)) != 0)
             {
                 ba = Word::wordToIntDec(data[sptr].getWord(x));
+                checkTrace(trace);
             }
             else 
             {
@@ -141,10 +153,12 @@ void RealMachine::checkInterrupts(VirtualMachine &vm)
         }
         else if(si == 5) //SUA
         {
-            int x = Word::hexToInt(vm.getCommand(3));
+            
+            int x = Word::hexToInt(command[3]);
             if((s & (1 << x)) != 0)
             {
                 data[sptr].setWord(Word::intToWordDec(ba), x);
+                checkTrace(trace);
             }
             else
             {
@@ -173,7 +187,8 @@ void RealMachine::interruptQuit(int status)
     printVirtualData();
     printPageTable();
     freeVirtualMemory();
-    cout << "Exit status " << status << endl;
+    cout << "Exit status " << status;
+    //cout << " " << si << " " << pi << endl;
     exit(status);
 }
 
@@ -188,73 +203,85 @@ void RealMachine::freeVirtualMemory()
     data[10 * a2 + a3].setReserved(false);
 }
 
-void RealMachine::execute(VirtualMachine &vm)
+void RealMachine::execute(string command)
 {
-    if(vm.getCommand() == "ADD0")
+    if(command == "ADD0")
     {
        add();
     }
-    else if(vm.getCommand() == "SUB0")
+    else if(command == "SUB0")
     {
        sub();
     }
-    else if(vm.getCommand() == "MUL0")
+    else if(command == "MUL0")
     {
        mul();
     }
-    else if(vm.getCommand() == "DIV0")
+    else if(command == "DIV0")
     {
        div();
     }
-    else if(vm.getCommand(0) == 'L' && vm.getCommand(1) == 'A')
+    else if(command[0] == 'L' && command[1] == 'A')
     {
-        la(Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
+        la(Word::hexToInt(command[2]), Word::hexToInt(command[3]));
     }
-    else if(vm.getCommand(0) == 'L' && vm.getCommand(1) == 'B')
+    else if(command[0] == 'L' && command[1] == 'B')
     {
-        lb(Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
+        lb(Word::hexToInt(command[2]), Word::hexToInt(command[3]));
     }
-    else if(vm.getCommand(0) == 'U' && vm.getCommand(1) == 'A')
+    else if(command[0] == 'U' && command[1] == 'A')
     {
-        ua(Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
+        ua(Word::hexToInt(command[2]), Word::hexToInt(command[3]));
     }
-    else if(vm.getCommand(0) == 'U' && vm.getCommand(1) == 'B')
+    else if(command[0] == 'U' && command[1] == 'B')
     {
-        ub(Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
+        ub(Word::hexToInt(command[2]), Word::hexToInt(command[3]));
     }
-    else if(vm.getCommand(0) == 'G' && vm.getCommand(1) == 'D')
+    else if(command[0] == 'G' && command[1] == 'D')
     {
-        gd(Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
+        gd(Word::hexToInt(command[2]), Word::hexToInt(command[3]));
     }
-    else if(vm.getCommand(0) == 'P' && vm.getCommand(1) == 'D')
+    else if(command[0] == 'P' && command[1] == 'D')
     {
-        pd(Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
+        pd(Word::hexToInt(command[2]), Word::hexToInt(command[3]));
     }
-    else if(vm.getCommand(0) == 'L' && vm.getCommand(1) == 'O' && vm.getCommand(2) == 'C')
+    else if(command[0] == 'L' && command[1] == 'O' && command[2] == 'C')
     {
-        loc(Word::hexToInt(vm.getCommand(3)));
+        loc(Word::hexToInt(command[3]));
     }
-    else if(vm.getCommand(0) == 'U' && vm.getCommand(1) == 'N' && vm.getCommand(2) == 'L')
+    else if(command[0] == 'U' && command[1] == 'N' && command[2] == 'L')
     {
-        unl(Word::hexToInt(vm.getCommand(3)));
+        unl(Word::hexToInt(command[3]));
     }
-    else if(vm.getCommand(0) == 'S' && vm.getCommand(1) == 'L' && vm.getCommand(2) == 'A')
+    else if(command[0] == 'S' && command[1] == 'L' && command[2] == 'A')
     {
-        sla(Word::hexToInt(vm.getCommand(3)));
+        sla(Word::hexToInt(command[3]));
     }
-    else if(vm.getCommand(0) == 'S' && vm.getCommand(1) == 'U' && vm.getCommand(2) == 'A')
+    else if(command[0] == 'S' && command[1] == 'U' && command[2] == 'A')
     {
-        sua(Word::hexToInt(vm.getCommand(3)));
+        sua(Word::hexToInt(command[3]));
     }
-    else if(vm.getCommand() == "CMP ")
+    else if(getCommand() == "CMP$")
     {
         cmp();
     }
-    else if(vm.getCommand(0) == 'J' && vm.getCommand(1) == 'M')
+    else if(command[0] == 'J' && command[1] == 'M')
     {
-        jm( Word::hexToInt(vm.getCommand(2)), Word::hexToInt(vm.getCommand(3)));
+        jm(Word::hexToInt(command[2]), Word::hexToInt(command[3]));
     }
-    else if(vm.getCommand() == "HALT")
+    else if(command[0] == 'J' && command[1] == 'E')
+    {
+        je(Word::hexToInt(command[2]), Word::hexToInt(command[3]));
+    }
+    else if(command[0] == 'J' && command[1] == 'A')
+    {
+        ja(Word::hexToInt(command[2]), Word::hexToInt(command[3]));
+    }
+    else if(command[0] == 'J' && command[1] == 'B')
+    {
+        jb(Word::hexToInt(command[2]), Word::hexToInt(command[3]));
+    }
+    else if(getCommand() == "HALT")
     {
         halt();
     }
@@ -265,7 +292,7 @@ void RealMachine::execute(VirtualMachine &vm)
         
 }
 
-int RealMachine::getRealData(int virtualAddress) // apsaugoti semaforu?
+int RealMachine::getRealData(int virtualAddress)
 {
     int a2 = ptr.getByte(2);
     int a3 = ptr.getByte(3);
@@ -275,7 +302,7 @@ int RealMachine::getRealData(int virtualAddress) // apsaugoti semaforu?
     return Word::wordToInt(data[Word::wordToIntDec(data[10 * a2 + a3].getWord(x1))].getWord(x2));
 }
 
-void RealMachine::setRealData(int x, int virtualAddress) // apsaugoti semaforu?
+void RealMachine::setRealData(int x, int virtualAddress)
 {
     int a2 = ptr.getByte(2);
     int a3 = ptr.getByte(3);
@@ -321,6 +348,30 @@ void RealMachine::initializePageTable()
         }
         data[randomBlockIndex].setReserved(true);
         data[10 * ptr.getByte(2) + ptr.getByte(3)].setWord(Word::intToWordDec(randomBlockIndex), i);
+    }
+}
+
+void RealMachine::prepareCommands(VirtualMachine &vm)
+{
+    int a2 = ptr.getByte(2);
+    int a3 = ptr.getByte(3);
+    string command;
+    for(int i = 0;; i++)
+    {
+        command = vm.readCommand(ch1);
+        if(command == "")
+        {
+            break;
+        }
+    int x1 = (i + ic) / 16;
+    int x2 = (i + ic) % 16;
+    //return 16 * wordToInt(rm->data[16 * (10 * a2 + a3) + x1] + x2);
+    data[Word::wordToIntDec(data[10 * a2 + a3].getWord(x1))].setWord(Word::stringToWord(command), x2);
+    }
+    ic++;
+    if(ch1 == 0)
+    {
+        interruptQuit(1);
     }
 }
 
@@ -629,11 +680,58 @@ void RealMachine::cmp()
 
 void RealMachine::jm(int x1, int x2)
 {
-    ic++;
     ti--;
     if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
     {
-        //perduoti valdyma komandai adresu 16*x1 + x2
+        ic = 16*x1 + x2;
+    }
+    else
+    {
+        pi = 1;
+    }
+}
+
+void RealMachine::je(int x1, int x2)
+{
+    ti--;
+    if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
+    {
+        if(sf == 0)
+        {
+            ic = 16*x1 + x2;
+        }
+    }
+    else
+    {
+        pi = 1;
+    }
+}
+
+void RealMachine::ja(int x1, int x2)
+{
+    ti--;
+    if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
+    {
+        if(sf == 1)
+        {
+            ic = 16*x1 + x2;
+        }
+    }
+    else
+    {
+        pi = 1;
+    }
+}
+
+void RealMachine::jb(int x1, int x2)
+{
+    ti--;
+    if(x1 >= 0 && x1 <= 15 && x2 >= 0 && x2 <= 15)
+    {
+        if(sf == 2)
+        {
+            ic = 16*x1 + x2;
+        }
     }
     else
     {

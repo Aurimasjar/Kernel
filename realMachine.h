@@ -19,22 +19,22 @@ class RealMachine
 
     public:
 
-    int ic = 0;
+    int ic = 160;
     //char ptr[4];
     Word ptr;
     int sptr;
     int ba;
     int bb;
     int bc;
-    int sf;
+    int sf = 0;
     int s = 0;
-    int mode;
+    int mode = 0;
     int ti = 30;
     int pi = 0;
     int si = 0;
-    int ch1;
-    int ch2;
-    int ch3;
+    int ch1 = 0;
+    int ch2 = 0;
+    int ch3 = 0;
     //char data[1280][4];
     Block data[80];
     
@@ -47,14 +47,14 @@ class RealMachine
 
     void runProgram(string filename, bool trace = false);
 
-    void checkTrace(VirtualMachine &vm, bool trace);
+    void checkTrace(bool trace);
 
     int test();
-    void checkInterrupts(VirtualMachine &vm);
+    void checkInterrupts(VirtualMachine &vm, string command, bool trace);
     void interruptQuit(int status);
     void freeVirtualMemory();
 
-    void execute(VirtualMachine &vm);
+    void execute(string command);
 
     void printRegisters();
     void printVirtualRegisters();
@@ -67,8 +67,10 @@ class RealMachine
     void setRealData(int x, int virtualAddress);
 
     void initializePtr();
-
     void initializePageTable();
+    void prepareCommands(VirtualMachine &vm);
+
+    string getCommand();
 
     //arithmetic operations
     void add();
@@ -93,6 +95,9 @@ class RealMachine
 
     //control operations
     void jm(int x1, int x2);
+    void je(int x1, int x2);
+    void ja(int x1, int x2);
+    void jb(int x1, int x2);
     void halt();
 };
 
