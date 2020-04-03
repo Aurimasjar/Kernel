@@ -10,13 +10,12 @@ string VirtualMachine::getCommand()
     return command[pos];
 }*/
 
-string VirtualMachine::readCommand(int &ch)
+string VirtualMachine::readCommand()
 {
     if(!program.eof())
     {
         program >> command;
         return command;
     }
-    ch = 1;
     return "";
 }

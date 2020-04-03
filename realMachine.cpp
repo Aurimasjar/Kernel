@@ -356,11 +356,13 @@ void RealMachine::prepareCommands(VirtualMachine &vm)
     int a2 = ptr.getByte(2);
     int a3 = ptr.getByte(3);
     string command;
+    command = vm.readCommand();
     for(int i = 0;; i++)
     {
-        command = vm.readCommand(ch1);
-        if(command == "")
+        command = vm.readCommand();
+        if(command == "$END")
         {
+            ch1 = 1;
             break;
         }
     int x1 = (i + ic) / 16;
@@ -368,7 +370,6 @@ void RealMachine::prepareCommands(VirtualMachine &vm)
     //return 16 * wordToInt(rm->data[16 * (10 * a2 + a3) + x1] + x2);
     data[Word::wordToIntDec(data[10 * a2 + a3].getWord(x1))].setWord(Word::stringToWord(command), x2);
     }
-    ic++;
     if(ch1 == 0)
     {
         interruptQuit(1);
@@ -378,30 +379,30 @@ void RealMachine::prepareCommands(VirtualMachine &vm)
 void RealMachine::printVirtualRegisters()
 {
     cout << "Virtual machine registers:" << endl;
-    cout << "Ic = " << ic << endl;
-    cout << "Ba = " << ba << endl;
-    cout << "Bb = " << bb << endl;
+    cout << "Ic = " << Word::intToHex(ic/16) << Word::intToHex(ic%16) << endl;
+    cout << "Ba = " << Word::intToHex(ba/16) << Word::intToHex(ba%16) << endl;
+    cout << "Bb = " << Word::intToHex(bb/16) << Word::intToHex(bb%16) << endl;
     cout << endl;
 }
 
 void RealMachine::printRegisters()
 {
     cout << "Real machine registers:" << endl;
-    cout << "Ic = " << ic << endl;
-    cout << "Ptr = " << ptr.getWord() << endl;
-    cout << "Sptr = " << sptr << endl;
-    cout << "Ba = " << ba << endl;
-    cout << "Bb = " << bb << endl;
-    cout << "Bc = " << bc << endl;
-    cout << "Sf = " << sf << endl;
-    cout << "S = " << s << endl;
-    cout << "Mode = " << mode << endl;
-    cout << "Ti = " << ti << endl;
-    cout << "Pi = " << pi << endl;
-    cout << "Si = " << si << endl;
-    cout << "Ch1 = " << ch1 << endl;
-    cout << "Ch2 = " << ch2 << endl;
-    cout << "Ch3 = " << ch3 << endl;
+    cout << "Ic = " << Word::intToHex(ic/16) << Word::intToHex(ic%16) << endl;
+    cout << "Ptr = " << Word::intToHex(ptr.getWord()/16) << Word::intToHex(ptr.getWord()%16) << endl;
+    cout << "Sptr = " << Word::intToHex(sptr/16) << Word::intToHex(sptr%16) << endl;
+    cout << "Ba = " << Word::intToHex(ba/16) << Word::intToHex(ba%16) << endl;
+    cout << "Bb = " << Word::intToHex(bb/16) << Word::intToHex(bb%16) << endl;
+    cout << "Bc = " << Word::intToHex(bc/16) << Word::intToHex(bc%16) << endl;
+    cout << "Sf = " << Word::intToHex(sf/16) << Word::intToHex(sf%16) << endl; //should be 1 byte
+    cout << "S = " << Word::intToHex(s/16) << Word::intToHex(s%16) << endl; //should be 1 byte
+    cout << "Mode = " << Word::intToHex(mode/16) << Word::intToHex(mode%16) << endl; //should be 1 byte
+    cout << "Ti = " << Word::intToHex(ti/16) << Word::intToHex(ti%16) << endl;
+    cout << "Pi = " << Word::intToHex(pi/16) << Word::intToHex(pi%16) << endl;
+    cout << "Si = " << Word::intToHex(si/16) << Word::intToHex(si%16) << endl;
+    cout << "Ch1 = " << Word::intToHex(ch1/16) << Word::intToHex(ch1%16) << endl; //should be 1 byte
+    cout << "Ch2 = " << Word::intToHex(ch2/16) << Word::intToHex(ch2%16) << endl; //should be 1 byte
+    cout << "Ch3 = " << Word::intToHex(ch3/16) << Word::intToHex(ch3%16) << endl; //should be 1 byte
     cout << endl;
 }
 
@@ -410,7 +411,7 @@ void RealMachine::printData()
     cout << "Real machine memory:" << endl;
     for(int i = 0; i < 80; i++)
     {
-        cout << i << ": ";
+        cout << Word::intToHex(i/16) << Word::intToHex(i%16) << ": ";
         for(int j = 0; j < 16; j++)
         {
             data[i].getWord(j).print();
@@ -426,7 +427,7 @@ void RealMachine::printVirtualData()
     cout << "Virtual machine memory:" << endl;
     for(int i = 0; i < 16; i++)
     {
-        cout << i << ": ";
+        cout << Word::intToHex(i%16) << ": ";
         for(int j = 0; j < 16; j++)
         {
             Word::intToWord(getRealData(16*i+j)).print();
@@ -444,7 +445,9 @@ void RealMachine::printPageTable()
     cout << "VM  |  RM" << endl;
     for(int i = 0; i < 16; i++)
     {
-        cout << i << "  |  " << data[10*a2 + a3].getWord(i).getWord() << endl;
+        cout << Word::intToHex(i/16) << Word::intToHex(i%16);
+        cout << "  |  ";
+        cout << Word::intToHex(data[10*a2 + a3].getWord(i).getWord()/16) << Word::intToHex(data[10*a2 + a3].getWord(i).getWord()%16) << endl;
     }
 }
 

@@ -52,7 +52,7 @@ class VirtualMachine
     string getCommand();
     //char getCommand(int pos);
 
-    string readCommand(int &ch);
+    string readCommand();
 };
 
 #endif
