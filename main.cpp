@@ -1,20 +1,22 @@
 #include <iostream>
 #include <cstdlib>
-#include "realMachine.h"
+#include <vector>
+#include "kernel.h"
 
 using namespace std;
 
 int main(int argc, char *argv[])
 {
-    RealMachine rm;
+    Kernel *kernel = new Kernel();
+
     if(argc > 0 && atoi(argv[1]) == 1)
     {
-        rm.runProgram("program2.txt", true);
+        kernel->runSystem(true);
     }
     else
     {
-        rm.runProgram("program2.txt");
+        kernel->runSystem(false);
     }
     
-    //rm.printData();
+    delete kernel;
 }

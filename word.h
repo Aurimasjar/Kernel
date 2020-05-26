@@ -16,7 +16,7 @@ class Word
     Word() { word[0] = 0; word[1] = 0; word[2] = 0; word[3] = 0; }
     ~Word() {}
 
-    void setWord(int x) { word[0] = x / 1000; word[1] = x / 100 % 10; word[2] = x / 10 % 10; word[3] = x % 10; }
+    void setWord(int x) { word[0] = x / (256*256*256); word[1] = x / (256*256) % 256; word[2] = x / 256 % 256; word[3] = x % 256; }
     void setWord(char x[4]) { for(int i = 0; i < 4; i++) { word[i] = x[i]; }}
     //void setWord(string x) { for(int i = 0; i < 4; i++) { word[i] = x[i]; }}
     void setByte(char x, int pos) { word[pos] = x; }
@@ -34,6 +34,7 @@ class Word
     static int wordToIntDec(Word word);
 
     void print();
+    void printAsSymbol();
 
     static int hexToInt(char s);
     static char charToHex(char s);

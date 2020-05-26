@@ -78,6 +78,16 @@ void Word::print()
     }
 }
 
+void Word::printAsSymbol()
+{
+    //cout << (int)word[0] <<  (int)word[1] <<  (int)word[2] <<  (int)word[3];
+    for(int i = 0; i < 4; i++)
+    {
+        cout << word[i];
+        //cout << charToHex(word[i] / 16) << charToHex(word[i] % 16);
+    }
+}
+
 char Word::intToHex(int x)
 {
     if(x >= 0 && x <= 9)
