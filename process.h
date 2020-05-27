@@ -53,6 +53,7 @@ class Process
     bool isRunning() { return running; }
     bool isReady() { return ready && !stopped; }
     bool isBlocked() { return blocked && !stopped; }
+    bool isStopped() { return stopped; }
     bool isReadyStopped() { return ready && stopped; }
     bool isBlockedStopped() { return blocked && stopped; }
 

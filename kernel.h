@@ -49,9 +49,9 @@ class Kernel
     Kernel();
     ~Kernel();
 
-    int runSystem(bool debug);
+    int runSystem(int debug);
 
-    void checkDebug(bool debug, Process *currentProcess);
+    void checkDebug(int debug, Process *currentProcess);
 
     void printProcesses();
     void printResources();
@@ -70,10 +70,11 @@ class Kernel
     void removeProcess(Process *pr);
     void stopProcess(Process *pr);
     void stopProcess(string name);
-    void releaseProcess(Process *pr);
+    void releaseProcess(Process *pr, Cpu &savedCpu);
     void releaseProcess(string name);
 
     Resource *getResource(string externalName);
+    Process *getProcess(string externalName);
 };
 
 //Memory Kernel::memory;

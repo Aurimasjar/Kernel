@@ -21,6 +21,7 @@ int StartStop::runProcess()
 
 void StartStop::initResources()
 {
+    createResource(200, this, false, "UserMemory", kernel, true, 80);
     createResource(0, this, false, "MosEnd", kernel, false);
     createResource(1, this, false, "InputStream", kernel, true);
     createResource(2, this, false, "Channel1", kernel, true);
@@ -35,7 +36,6 @@ void StartStop::initResources()
     //createResource(10, this, false, "FromGetLine", kernel, false);
     createResource(11, this, false, "Semaphore", kernel, false);
     //createResource(12, this, false, "FromMemoryGovernor", kernel, false);
-    createResource(13, this, false, "UserMemory", kernel, true, 80);
     for(int i = 0; i < 16; i++) createResource(140 + i, this, false, "SharedMemoryBlock" + to_string(i), kernel, true);
 }
 

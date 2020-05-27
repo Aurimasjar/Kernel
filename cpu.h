@@ -19,7 +19,7 @@ class Cpu
     int sf = 0;
     int s = 0;
     int mode;
-    int ti = 30;
+    int ti = 10;
     int pi = 0;
     int si = 0;
     int ch1 = 0;
@@ -30,7 +30,7 @@ class Cpu
     Cpu(const Cpu &c);
     ~Cpu() {}
 
-    void initCpu();
+    //void initCpu();
 };
 
 #endif

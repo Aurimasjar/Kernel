@@ -9,13 +9,13 @@ int main(int argc, char *argv[])
 {
     Kernel *kernel = new Kernel();
 
-    if(argc > 0 && atoi(argv[1]) == 1)
+    if(argc > 0)
     {
-        kernel->runSystem(true);
+        kernel->runSystem(atoi(argv[1]));
     }
     else
     {
-        kernel->runSystem(false);
+        kernel->runSystem(0);
     }
     
     delete kernel;

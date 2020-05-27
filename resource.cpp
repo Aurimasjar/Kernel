@@ -81,23 +81,24 @@ Resource::~Resource()
 
 void Resource::printResourceInfo()
 {
-    //cout << "Id externalName fatherID userID inUse" << endl;
     int userId = user == nullptr ? -1 : user->getId();
-    cout << "RESOURCE INFO [" << id << " " << externalName << " " << father->getId() << " " << userId << " " << available << "]" << endl;
+    cout << "RESOURCE INFO [" << id << " " << father->getId() << " " /*<< userId << " " */<< available << " " << externalName << "]" << endl;
 }
 
 void ListResource::printResourceInfo()
 {
-    cout << "RESOURCE INFO [" << id << " " << getName() << " " << father->getId() << "]:" << endl;
+    cout << "RESOURCE INFO [" << id << " " << father->getId() << "]:" << " " << getName() << endl;
     cout << "Units: ";
     for(int i = 0; i < avList.size(); i++)
     {
-        cout << avList[i] << " ";
+        cout << avList[i] << "  ";
+        if(i % 40 == 0) cout << endl;
     } cout << endl;
     cout << "Users: ";
     for(int i = 0; i < avList.size(); i++)
     {
         if(userList[i] == nullptr) cout << -1 << " ";
         else cout << userList[i]->getId() << " ";
+        if(i % 40 == 0) cout << endl;
     } cout << endl;
 }

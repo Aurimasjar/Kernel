@@ -28,11 +28,7 @@ int Interrupt::runProcess()
 int Interrupt::identifyInterrupt()
 {
     int type;
-    if(kernel->cpu.ti <= 0)
-    {
-        type = 0;
-    }
-    else if(kernel->cpu.si == 1) //GD
+    if(kernel->cpu.si == 1) //GD
     {
         type = 1;
     }
@@ -52,7 +48,10 @@ int Interrupt::identifyInterrupt()
     {
         type = 5;
     }
-
+    if(kernel->cpu.ti <= 0)
+    {
+        type += 20;
+    }
     if(kernel->cpu.pi > 0)
     {
         type = -1;

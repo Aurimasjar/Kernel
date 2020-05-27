@@ -74,7 +74,6 @@ void Process::destroyResource(string externalName)
             break;
         }
     }
-    //cout << "Error: Resource destruction failed: Cannot find a resource called " << externalName << endl; 
 }
 
 void Process::askForResource(string externalName)
@@ -96,9 +95,7 @@ void Process::askForResource(string externalName)
         }
     }
     setBlocked();
-    //cout << "Resource request: " << getName() << " requests for " << externalName << endl;
-    //cout << "Error: Resource request failed: Cannot find a resource called " << externalName << endl;
-    // call resource distributor
+    cout << "Resource request: " << getName() << " requests for " << externalName << endl;
     kernel->resourceDistributor(this, externalName);
 }
 
@@ -126,16 +123,13 @@ void Process::releaseResource(string externalName)
             break;
         }
     }
-    //cout << "Resource release: " << getName() << " releases resource " << externalName << endl;
-    //cout << "Error: Resource release failed: Cannot find a resource called " << externalName << endl; 
-    // call resource distributor
+    cout << "Resource release: " << getName() << " releases resource " << externalName << endl;
     kernel->resourceDistributor(this, externalName);
 }
 
 void Process::printProcessInfo()
 {
-    //cout << "Id externalName fatherID priority state{running,ready,blocked,stopped}" << endl;
     int fatherId = father == nullptr ? -1 : father->getId();
-    cout << "PROCESS INFO [" << id << " " << externalName << " " << fatherId << " " << priority << " ";
-    cout << running << ready << blocked << stopped << "]" << endl;
+    cout << "PROCESS INFO [" << id << " " << fatherId << " " << priority << " " << run << " ";
+    cout << running << ready << blocked << stopped << " " << externalName << "]" << endl;
 }

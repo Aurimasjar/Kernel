@@ -22,7 +22,7 @@ Kernel::~Kernel()
     delete memory;
 }
 
-int Kernel::runSystem(bool debug)
+int Kernel::runSystem(int debug)
 {
     cout << "MOS launched" << endl;
     Process *currentProcess = new StartStop(0, nullptr, 2, 100, "StartStop", this);
@@ -31,7 +31,8 @@ int Kernel::runSystem(bool debug)
     checkDebug(debug, currentProcess);
     while(true)
     {
-        //cout << "Current process: " << currentProcess->getName() << endl;
+
+        if(debug == 2) cout << "Current process: " << currentProcess->getName() << endl;
         currentProcess->runProcess();
         if(processes.empty()) break;
         planner(&currentProcess);
@@ -41,10 +42,10 @@ int Kernel::runSystem(bool debug)
     return 0;
 }
 
-void Kernel::checkDebug(bool debug, Process *currentProcess)
+void Kernel::checkDebug(int debug, Process *currentProcess)
 {
     string waitCommand;
-    if(debug == true)
+    if(debug == 1)
     {
         cout << "Next process: " << currentProcess->getName() << endl;
         while(true)
@@ -112,6 +113,7 @@ void Kernel::checkDebug(bool debug, Process *currentProcess)
 
 void Kernel::printProcesses()
 {
+    cout << "Id fatherID priority run state{running,ready,blocked,stopped} processName" << endl;
     for(int i = 0; i < processes.size(); i++)
     {
         this->processes[i]->printProcessInfo();
@@ -120,6 +122,7 @@ void Kernel::printProcesses()
 
 void Kernel::printResources()
 {
+    cout << "Id fatherID available resourceName" << endl;
     for(int i = 0; i < resources.size(); i++)
     {
         this->resources[i]->printResourceInfo();
@@ -328,13 +331,15 @@ void Kernel::stopProcess(string name)
         if(processes[i]->getName() == name)
         {
             processes[i]->setStopped();
+            processes[i]->priority--;
             break;
         }
     }
 }
 
-void Kernel::releaseProcess(Process *pr)
+void Kernel::releaseProcess(Process *pr, Cpu &savedCpu)
 {
+    savedCpu.ti = 10;
     pr->setReleased();
 }
 
@@ -361,6 +366,19 @@ Resource *Kernel::getResource(string externalName)
             return resources[i];
         }
     }
-    cout << "get resource() error: There is no such a resource called " << externalName << endl;
+    cout << "getResource() error: There is no such a resource called " << externalName << endl;
+    return nullptr;
+}
+
+Process *Kernel::getProcess(string externalName)
+{
+    for(int i = 0; i < processes.size(); i++)
+    {
+        if(processes[i]->getName() == externalName)
+        {
+            return processes[i];
+        }
+    }
+    cout << "getProcess() error: There is no such a process called " << externalName << endl;
     return nullptr;
 }

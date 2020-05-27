@@ -2,7 +2,7 @@
 
 using namespace std;
 
-void Cpu::initCpu()
+/*void Cpu::initCpu()
 {
     // initialize register's values
     ic = 160;
@@ -20,7 +20,7 @@ void Cpu::initCpu()
     ch1 = 0;
     ch2 = 0;
     ch3 = 0;
-}
+}*/
 
 Cpu::Cpu(const Cpu &c)
 {

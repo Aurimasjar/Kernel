@@ -38,6 +38,11 @@ int JobGovernor::runProcess()
     }
     else if(run == 3)
     {
+        Process *vmpr = kernel->getProcess("VirtualMachine" + to_string(getId() - 20));
+        if(vmpr->isStopped())
+        {
+            kernel->releaseProcess(vmpr, dynamic_cast<VirtualMachine*>(vmpr)->savedCpu);
+        }
         createResource(getId() + 40, this, false, "Continue" + to_string(getId() - 20), kernel, 0, false);
         releaseResource("Continue" + to_string(getId() - 20));
         askForResource("FromInterrupt" + to_string(getId() - 20));
@@ -49,14 +54,14 @@ int JobGovernor::runProcess()
         Resource *r = kernel->getResource("FromInterrupt"  + to_string(getId() - 20));
         int interruptType = r->getValue();
         int address = r->getAddress();
-        if(interruptType == 0)   // Timer interrupt
+        if(interruptType >= 20)   // Timer interrupt
         {
             kernel->stopProcess("VirtualMachine" + to_string(getId() - 20));
-            run = 3;    // or add another state (for example run=7?)
+            run = 3;    // or add another state (for example run=8?)
         }
-        else if(interruptType >= 1 && interruptType <= 2)    // IO interrupt
+        if(interruptType%20 >= 1 && interruptType%20 <= 2)    // IO interrupt
         {
-            if(interruptType == 1)
+            if(interruptType%20 == 1)
             {
                 createResource(getId() + 70, this, false, "GetWord", kernel, 0, address, false);
                 releaseResource("GetWord");
@@ -71,14 +76,14 @@ int JobGovernor::runProcess()
                 run = 6;
             }  
         }
-        else if(interruptType >= 4 && interruptType <= 5)   // Semaphore interrupt
+        else if(interruptType%20 >= 4 && interruptType%20 <= 5)   // Semaphore interrupt
         {
             createResource(getId() + 90, this, false, "Semaphore" + to_string(getId() - 20), kernel, interruptType, address, false);
             releaseResource("Semaphore" + to_string(getId() - 20));
             askForResource("FromMemoryGovernor" + to_string(getId() - 20));
             run = 7;
         }
-        else
+        else if(interruptType < 20)
         {
             run += 10;
         }
