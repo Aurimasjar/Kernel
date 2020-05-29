@@ -9,12 +9,12 @@ int PrintLine::runProcess()
         askForResource("PrintWord");
         run++;
     }
-    else if(run == 1)
+    else if(run == 3)
     {
         askForResource("Channel2");
         run++;
     }
-    else
+    else if(run > 3)
     {
         Resource *r = kernel->getResource("PrintWord");
         int jgid = r->father->getId();

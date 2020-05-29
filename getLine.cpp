@@ -9,12 +9,12 @@ int GetLine::runProcess()
         askForResource("GetWord");
         run++;
     }
-    else if(run == 1)
+    else if(run == 3)
     {
         askForResource("Channel3");
         run++;
     }
-    else
+    else if(run > 3)
     {
         Resource *r = kernel->getResource("GetWord");
         int jgid = r->father->getId();

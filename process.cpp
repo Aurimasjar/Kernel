@@ -130,6 +130,12 @@ void Process::releaseResource(string externalName)
 void Process::printProcessInfo()
 {
     int fatherId = father == nullptr ? -1 : father->getId();
-    cout << "PROCESS INFO [" << id << " " << fatherId << " " << priority << " " << run << " ";
-    cout << running << ready << blocked << stopped << " " << externalName << "]" << endl;
+    cout << "PROCESS INFO [" << setw(3) << id << setw(17) << externalName <<
+    setw(4) << fatherId  << setw(4) << priority << setw(3) << run;
+    //cout << running << ready << blocked << stopped << " " << externalName << "]" << endl;
+    if(running) cout << setw(10) << "Running ";
+    else if(ready) cout << setw(10) << "Ready ";
+    else if(blocked) cout << setw(10) << "Blocked ";
+    if(stopped) cout << setw(9) << "stopped";
+    cout << "]" << endl;
 }

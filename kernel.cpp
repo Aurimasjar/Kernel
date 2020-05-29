@@ -31,7 +31,6 @@ int Kernel::runSystem(int debug)
     checkDebug(debug, currentProcess);
     while(true)
     {
-
         if(debug == 2) cout << "Current process: " << currentProcess->getName() << endl;
         currentProcess->runProcess();
         if(processes.empty()) break;
@@ -47,6 +46,7 @@ void Kernel::checkDebug(int debug, Process *currentProcess)
     string waitCommand;
     if(debug == 1)
     {
+        printProcesses();
         cout << "Next process: " << currentProcess->getName() << endl;
         while(true)
         {
@@ -113,7 +113,7 @@ void Kernel::checkDebug(int debug, Process *currentProcess)
 
 void Kernel::printProcesses()
 {
-    cout << "Id fatherID priority run state{running,ready,blocked,stopped} processName" << endl;
+    cout << "             Id  processName  fatherID  priority  run  state" << endl;
     for(int i = 0; i < processes.size(); i++)
     {
         this->processes[i]->printProcessInfo();
@@ -122,7 +122,7 @@ void Kernel::printProcesses()
 
 void Kernel::printResources()
 {
-    cout << "Id fatherID available resourceName" << endl;
+    cout << "Id  fatherID  available  resourceName" << endl;
     for(int i = 0; i < resources.size(); i++)
     {
         this->resources[i]->printResourceInfo();
@@ -261,10 +261,18 @@ void Kernel::planner(Process **currentProcess)
     {
         if(processes[i]->isReady())
         {
-            // control of CPU is given to currentProcess
-            *currentProcess = processes[i];
-            (*currentProcess)->setRunning();
-            break;
+            if((processes[i]->getName() == "GetLine" || processes[i]->getName() == "PrintLine") &&
+            (processes[i]->run > 0 && processes[i]->run < 3))
+            {
+                processes[i]->run++;
+            }
+            else
+            {
+                // control of CPU is given to currentProcess
+                *currentProcess = processes[i];
+                (*currentProcess)->setRunning();
+                break;
+            }
         }
     }
 }

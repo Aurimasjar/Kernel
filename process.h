@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <iomanip>
 #include "cpu.h"
 #include "resource.h"
 #include "kernel.h"
@@ -16,11 +17,9 @@ class Kernel;
 
 class Process
 {
-    protected:
+    public:
 
     int run = 0;
-
-    public:
 
     bool running;
     bool ready;
@@ -168,7 +167,7 @@ class Interrupt : public Process
 
 class PrintLine : public Process
 {
-    public:
+    public: 
     PrintLine(int id, Process *father, int initialState, int priority, string externalName, Kernel *kernel) : 
     Process(id, father, initialState, priority, externalName, kernel) {}
     int runProcess();
